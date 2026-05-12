@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block title %}Herbalyfe - Herbs List{% endblock %}
+
+{% block content %}
+
+<section class="herbs-section">
+    <h2 class="page-title">List of Medicinal Herbs</h2>
+
+    <div class="search-bar-container">
+        <input type="text" id="herb-search" placeholder="🔍 Search herbs..." autocomplete="off">
+    </div>
+
+    <div id="no-results-herbs" class="no-results">
+        ❌ No herbs found.
+    </div>
+
+    <div class="herb-grid">
+        {% for herb in herbs %}
+        <a href="{% url 'herbs:herb_page' slug=herb.slug %}" class="herb-card">
+            <img src="{{ herb.image.url }}" alt="{{ herb.name }}">
+            <h3>{{ herb.name }}</h3>
+            <p class="scientific-name">{{ herb.scientific_name }}</p>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

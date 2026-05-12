@@ -1,0 +1,868 @@
+/* Reset and base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, rgb(34, 134, 43), rgb(28, 90, 32));
+    color: #f5f5f5;
+    font-family: "Poppins", Arial, sans-serif;
+    font-size: 1.1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navigation bar */
+nav {
+    background-color: #2f9e6b;
+    color: white;
+    font-size: 1.8rem;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* Navigation links */
+nav a {
+    color: #e9f9f0;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+nav a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Main content */
+main {
+    display: grid;
+    place-content: center;
+    text-align: center;
+}
+
+/* Text styling */
+h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+
+p {
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Links in content */
+a {
+    color: #27a05b;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+a:hover {
+    opacity: 0.8;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+    nav {
+        font-size: 1.6rem;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+}
+
+/* Herbs & Illnesses Shared Layout */
+.herbs-section, 
+.illnesses-section {
+    text-align: center;
+    padding: 2rem 1rem 3rem;
+}
+
+.page-title, 
+.illnesses-section h2 {
+    color: #f5f5f5;
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.herb-grid, 
+.illness-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.herb-card {
+    background-color: #aee4aa;
+    border: 2px solid #1f703b;
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+    color: #1b5e30;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.illness-card {
+    background-color: #9fcbf7;
+    border: 2px solid #2159a6;
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+    color: #1b3e70;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.herb-card:hover, 
+.illness-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.herb-card img, 
+.illness-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 0.8rem;
+}
+
+.herb-card h3, 
+.illness-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.4rem 0 0.2rem;
+}
+
+/* Unique to herbs only */
+.scientific-name {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #356f47;
+}
+
+/* Individual Herb Page */
+.herb-details-section {
+    max-width: 1000px;
+    margin: 2rem auto 3rem;
+    padding: 2rem;
+    background-color: #aee4aa;
+    border-radius: 16px;
+    color: #1b5e30;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.herb-card-large {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+.herb-image-container {
+    flex: 1 1 280px;
+    text-align: center;
+}
+
+.herb-image-container img {
+    width: 100%;
+    max-width: 280px;
+    border-radius: 12px;
+    object-fit: contain;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.herb-info {
+    flex: 2 1 400px;
+    text-align: left;
+}
+
+.herb-name {
+    font-size: 2rem;
+    color: #1b5e30;
+    margin-bottom: 0.4rem;
+}
+
+.herb-scientific {
+    font-size: 1.2rem;
+    font-style: italic;
+    color: #3a8f5e;
+    margin-bottom: 1.2rem;
+}
+
+.herb-description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.herb-section {
+    margin-bottom: 1.5rem;
+}
+
+.herb-section h4 {
+    font-size: 1.1rem;
+    color: #1f7a4d;
+    margin-bottom: 0.4rem;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-weight: 600;
+    color: #1b5e30;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: #2f9e6b;
+}
+
+/* Illness Page Styling */
+.illness-detail-section {
+    max-width: 1000px;
+    margin: 2rem auto 3rem;
+    padding: 2rem;
+    background-color: #9fcbf7;
+    border-radius: 16px;
+    color: #1b3e70;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.illness-detail-section img {
+    width: 100%;
+    max-width: 280px;
+    border-radius: 12px;
+    object-fit: contain;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    margin-bottom: 1.2rem;
+}
+
+.illness-detail-section h2 {
+    font-size: 2rem;
+    color: #1b3e70;
+    margin-bottom: 0.8rem;
+}
+
+.illness-detail-section h3 {
+    font-size: 1.3rem;
+    color: #2159a6;
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+
+.illness-detail-section p {
+    font-size: 1rem;
+    color: #1e2d3d;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.illness-detail-section .back-link {
+    color: #1b3e70;
+}
+
+.illness-detail-section .back-link:hover {
+    color: #3a6db3;
+}
+
+/* Map controls (illness page below <hr>) */
+.map-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.map-control-item {
+    text-align: center;
+}
+
+/* Hidden overlay by default */
+#image-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8); /* darkens the screen */
+  display: none; /* hidden initially */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* Zoomed image style */
+#image-overlay img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  transition: transform 0.3s ease;
+  transform: scale(1.05);
+  cursor: grab;
+}
+
+/* Optional: smooth hover zoom */
+#image-overlay img:hover {
+  transform: scale(1.1);
+}
+
+/* Regular herb image cursor */
+#herb-image {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+#herb-image:hover {
+  transform: scale(1.03);
+}
+
+/* Regular illness image cursor */
+#illness-image {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+#illness-image:hover {
+  transform: scale(1.03);
+}
+
+/* Registration Page Styling */
+.register-section {
+  max-width: 600px;
+  margin: 3rem auto;
+  background-color: #eaf7e9;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  color: #1b5e30;
+}
+
+.register-section h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.6rem;
+}
+
+.form-group label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.form-group input {
+  font-size: 1.1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #1b5e30;
+  outline: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.form-group input:focus {
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.25);
+}
+
+/* 🔴 Error messages */
+.error-list {
+  list-style: none;
+  margin-bottom: 0.4rem;
+  padding-left: 0;
+  margin-top: 0.4rem;
+  color: #d32f2f;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.error-list li {
+  margin-bottom: 0.3rem;
+}
+
+/* Help text styling (general) */
+.help-text {
+  font-size: 0.9rem;
+  color: #356f47;
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+/* Username help text (single line with checkmark) */
+.form-group:first-of-type .help-text {
+  position: relative;
+  padding-left: 1.4rem;
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(4px);
+  animation: fadeInHelp 0.4s ease forwards;
+}
+
+.form-group:first-of-type .help-text::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  color: #2f9e6b;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+/* Password list help text (checkmarks + fade-in animation) */
+.help-text ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.4rem;
+}
+
+.help-text ul li {
+  list-style: none;
+  position: relative;
+  padding-left: 1.4rem;
+  margin-bottom: 0.3rem;
+  opacity: 0;
+  transform: translateY(4px);
+  animation: fadeInHelp 0.4s ease forwards;
+}
+
+.help-text ul li:nth-child(1) { animation-delay: 0.05s; }
+.help-text ul li:nth-child(2) { animation-delay: 0.1s; }
+.help-text ul li:nth-child(3) { animation-delay: 0.15s; }
+.help-text ul li:nth-child(4) { animation-delay: 0.2s; }
+
+.help-text ul li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  color: #2f9e6b;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+/* Shared fade-in animation */
+@keyframes fadeInHelp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Align password help text to the left */
+.left-aligned {
+  text-align: left;
+  padding-left: 0.2rem;
+}
+
+/* Submit button */
+.register-btn {
+  background-color: #2f9e6b;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  width: 100%;
+}
+
+.register-btn:hover {
+  background-color: #267d56;
+  transform: translateY(-2px);
+}
+
+/* Login link styling (below button) */
+.login-link {
+  text-align: center;
+  margin-top: 1.2rem;
+  font-size: 1rem;
+}
+
+.login-link a {
+  color: #2f9e6b;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-link a:hover {
+  text-decoration: none;
+}
+
+/* Forgot password link styling */
+.forgot-link {
+  text-align: center;
+  margin-top: 1.2rem;
+  font-size: 1rem;
+}
+
+.forgot-link a {
+  color: #2f9e6b;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.forgot-link a:hover {
+  text-decoration: none;
+}
+
+/* Home Page Section */
+.home-section {
+  max-width: 1000px;
+  margin: 3rem auto;
+  padding: 2rem;
+  text-align: left;
+  color: #f5f5f5;
+}
+
+.intro-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap; /* allows stacking on small screens */
+}
+
+.intro-left {
+  flex: 1 1 40%;
+  text-align: center;
+}
+
+.intro-left img {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+
+.intro-left h1 {
+  font-size: 2rem;
+  color: #e8ffe8;
+  margin-bottom: 0.5rem;
+}
+
+.intro-left p {
+  color: #d7f7d7;
+  font-size: 1rem;
+}
+
+.intro-right {
+  flex: 2 1 55%;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.intro-right h3 {
+  color: #b8ffb8;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.intro-right p {
+  color: #f1fff1;
+  line-height: 1.6;
+  margin-bottom: 0.8rem;
+}
+
+/* Messages (success/error) */
+.messages {
+    list-style: none;
+    margin: 1rem 0 1.5rem 0;
+    padding-left: 0;
+}
+
+.messages li {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+}
+
+.messages li.success {
+    color: #2f9e6b; /* green for success */
+}
+
+.messages li.error {
+    color: #d32f2f; /* red for errors */
+}
+
+/* Profile section adjustments */
+.profile-section img {
+    display: block;
+    margin: 0 auto 1rem;
+    max-width: 300px;
+    border-radius: 50%;
+    border: 2px solid #1b5e30;
+}
+
+.profile-success, .password-success {
+    color: #2f9e6b;
+    font-weight: 600;
+    margin-top: 0.8rem;
+}
+
+/* Search bar styling */
+.search-bar-container {
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+}
+
+#herb-search, #illness-search {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    width: 260px;
+    border-radius: 10px;
+    border: 2px solid #1b5e30;
+    background-color: #e8ffe8;
+    color: #1b5e30;
+    outline: none;
+    transition: box-shadow 0.2s ease;
+}
+
+#herb-search:focus, #illness-search:focus {
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.25);
+}
+
+#no-results-herbs, #no-results-illnesses, #no-results {
+    display:none;
+}
+
+.highlight {
+    background-color: yellow;
+    padding: 0 2px;
+    border-radius: 3px;
+}
+
+/* =========================
+   MAP DROPDOWN STYLING
+========================= */
+#filter-herb, #filter-user, #herb-select, #report-select, #filter-dropdown, #clear-logs {
+    font-family: "Poppins", Arial, sans-serif;
+    font-size: 1.05rem;
+    color: #1b5e30; /* dark green text */
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1.5px solid #1b5e30;
+    background-color: #eaf7e9;
+    transition: all 0.2s ease;
+}
+
+#filter-herb:focus, #filter-user:focus, #herb-select:focus, #report-select:focus, #filter-dropdown:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.25);
+}
+
+#clear-logs:hover {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.25);
+    cursor: pointer;
+}
+
+/* =========================
+   MAP POPUP STYLING
+========================= */
+.leaflet-popup-content-wrapper {
+    background: linear-gradient(160deg, #a6f2a6, #4caf50); /* soft green gradient */
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    font-family: "Poppins", Arial, sans-serif;
+    font-size: 1rem;
+    color: #000;
+    line-height: 1.4;
+    min-width: 200px;
+    max-width: 280px;
+}
+
+.leaflet-popup-content a {
+    color: #1b5e30;
+    font-style: italic;
+    font-weight: 600;
+    text-decoration: underline;
+    display: inline-block;
+    margin-bottom: 6px;
+}
+
+.leaflet-popup-content a:link,
+.leaflet-popup-content a:visited {
+    color: #1b5e30;
+    font-style: italic;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.leaflet-popup-content b {
+    color: #000;
+}
+
+.leaflet-popup-content span.data {
+    font-weight: normal;
+    color: #000;
+}
+
+.leaflet-popup-content button {
+    font-family: "Poppins", Arial, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    margin-top: 6px;
+    margin-right: 6px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.leaflet-popup-content .delete-pin-btn {
+    background-color: #d32f2f;
+    color: #fff;
+}
+
+.leaflet-popup-content .delete-pin-btn:hover {
+    background-color: #b71c1c;
+}
+
+.leaflet-popup-content .favorite-pin-btn {
+    background-color: #2f9e6b;
+    color: #fff;
+}
+
+.leaflet-popup-content .favorite-pin-btn:hover {
+    background-color: #267d56;
+}
+
+.leaflet-popup-content button {
+    display: inline-block;
+}
+
+.leaflet-popup-content br {
+    line-height: 1.5;
+}
+
+.leaflet-popup-content .report-pin-btn {
+    background-color: #f9a825;
+    color: #000;
+}
+
+.leaflet-popup-content .report-pin-btn:hover {
+    background-color: #f57f17;
+}
+
+/* Responsive adjustment for smaller screens */
+@media (max-width: 768px) {
+  .intro-container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .intro-right {
+    text-align: left;
+    margin-top: 1.5rem;
+  }
+}
+
+/* Report Table */
+.reports-section {
+    width: 95%;
+    margin: 2rem auto;
+    text-align: center;
+}
+
+.reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #eaf7e9;
+    color: #1b5e30;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.reports-table th {
+    background-color: #2f9e6b;
+    color: white;
+    padding: 14px;
+}
+
+.reports-table td {
+    padding: 12px;
+    border-bottom: 1px solid #b7d8b5;
+}
+
+.reports-table tr:hover {
+    background-color: #d8f0d4;
+}
+
+.view-pin-btn {
+    background-color: #2f9e6b;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.view-pin-btn:hover {
+    background-color: #267d56;
+}
+
+.approve-btn {
+    background-color: #2a97b3;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.deny-btn {
+    background-color: #d80606;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.approve-btn:hover {
+    background-color: #1e6c80;
+    cursor: pointer;
+}
+
+.deny-btn:hover {
+    background-color: #a51818;
+    cursor: pointer;
+}

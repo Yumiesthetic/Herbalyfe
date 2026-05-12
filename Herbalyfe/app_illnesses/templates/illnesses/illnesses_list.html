@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+
+{% block title %}Herbalyfe - Illnesses List{% endblock %}
+
+{% block content %}
+<section class="illnesses-section">
+    <h2>List of Illnesses</h2>
+
+    <div class="search-bar-container">
+        <input type="text" id="illness-search" placeholder="🔍 Search illnesses..." autocomplete="off">
+    </div>
+
+    <div id="no-results-illnesses" class="no-results">
+        ❌ No illnesses found.
+    </div>
+
+    <div class="illness-grid">
+        {% for illness in illnesses %}
+            <a href="{% url 'illnesses:illness_page' slug=illness.slug %}" class="illness-card">
+                <img src="{{ illness.image.url }}" alt="{{ illness.name }}">
+                <h3>{{ illness.name }}</h3>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

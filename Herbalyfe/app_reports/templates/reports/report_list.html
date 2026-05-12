@@ -1,0 +1,160 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+Reported Pins
+{% endblock %}
+
+{% block content %}
+
+<section class="reports-section">
+
+    <h1>REPORTED PINS BY USERS</h1>
+
+    <form method="get" style="margin-bottom:20px;">
+        <select id="report-select" name="status" onchange="this.form.submit()">
+
+            <option value="">ALL REPORTS</option>
+
+            <option value="PENDING"
+                {% if status_filter == 'PENDING' %}selected{% endif %}>
+                PENDING
+            </option>
+
+            <option value="APPROVED"
+                {% if status_filter == 'APPROVED' %}selected{% endif %}>
+                APPROVED
+            </option>
+
+            <option value="DENIED"
+                {% if status_filter == 'DENIED' %}selected{% endif %}>
+                DENIED
+            </option>
+        </select>
+
+        <select name="sort" id="filter-dropdown" onchange="this.form.submit()">
+            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>
+                Newest
+            </option>
+
+            <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>
+                Oldest First
+            </option>
+
+            <option value="id_asc" {% if sort == 'id_asc' %}selected{% endif %}>
+                Sort Ascending
+            </option>
+
+            <option value="id_desc" {% if sort == 'id_desc' %}selected{% endif %}>
+                Sort Descending
+            </option>
+        </select>
+    </form>
+
+    <form method="post"
+            action="{% url 'reports:clear_logs' %}"
+            onsubmit="return confirm('Clear all resolved logs?');">
+
+            {% csrf_token %}
+            
+            {% comment %}
+            <!-- Clear Logs button only shows if there are resolved logs -->
+            {% if has_resolved_logs %}
+            <button type="submit" id="clear-logs">
+                Clear Logs
+            </button>
+            {% endcomment %}
+    </form>
+
+    <table class="reports-table">
+
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Report ID</th>
+                <th>Reported By</th>
+                <th>Original Pin Owner</th>
+                <th>Reason</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+                <th>View Pin</th>
+                <th>Update Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for report in reports %}
+
+            <tr>
+                <td>{{ forloop.counter }}</td>
+
+                <td>{{ report.id }}</td>
+
+                <td>{{ report.reported_by.username }}</td>
+
+                <td>
+                    {{ report.original_pin_owner|default:"N/A" }}
+                </td>
+
+                <td>{{ report.reason }}</td>
+
+                <td>{{ report.created_at }}</td>
+
+                <td>{{ report.status }}</td>
+
+                <td>
+                    {% if report.reported_pin %}
+                    <a href="/map?pin={{ report.reported_pin.id }}"
+                    class="view-pin-btn">
+                        Go
+                    </a>
+
+                    {% else %}
+                    <span>
+                        Pin is no longer available or got deleted.
+                    </span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if report.status == 'PENDING' %}
+
+                        <form method="post"
+                            action="{% url 'reports:update_report_status' report.id 'APPROVED' %}"
+                            style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="approve-btn">
+                                Approve
+                            </button>
+                        </form>
+
+                        <form method="post"
+                            action="{% url 'reports:update_report_status' report.id 'DENIED' %}"
+                            style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="deny-btn">
+                                Deny
+                            </button>
+                        </form>
+
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="7">
+                    No reports found.
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</section>
+
+{% endblock %}

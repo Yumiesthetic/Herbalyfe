@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>{% block title %}Herbalyfe Website{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="icon" href="..\static\images\herbalyfe_logo\Herbalyfe-logo-icon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="{% static 'js/main.js' %}" defer></script>
+    <script src="{% static 'js/search.js' %}" defer></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body>
+    <nav>
+        {% if user.is_authenticated %} <!-- Check if user is logged in -->
+            <a href="/" title="Home Page" aria-label="Home Page">🏡 Welcome back, {{ user.username}}!</a>
+        {% else %} <!-- If user is not logged in -->
+            <a href="/" title="Home Page" aria-label="Home Page">🏡 Home</a>
+        {% endif %}
+
+        <a href="{% url 'herbs:herbs_list' %}" title="Herbs List" aria-label="Herbs List">🌿 Herbs</a>
+        <a href="{% url 'illnesses:illnesses_list' %}" title="Illnesses List" aria-label="Illnesses List">🦠 Illnesses</a>
+        <a href="/map" title="Map" aria-label="Map">🌏 Map Pins</a>
+
+        {% if user.is_authenticated %}
+            {% if user.is_superuser %}
+            <a href="{% url 'reports:report_list' %}">
+                🚨 Reports
+            </a>
+            {% endif %}
+            <a href="{% url 'users:profile' %}" title="Profile Page" aria-label="Profile Page">👤 Profile</a>
+            <a href="{% url 'users:logout' %}" class="logout-link" title="Logout" aria-label="Logout">🚪 Logout</a>   
+        {% else %}
+            <a href="{% url 'users:login' %}" title="Login" aria-label="Login">🔑 Login</a>
+            <a href="{% url 'users:register' %}" title="Register" aria-label="Register">📝 Register</a>
+        {% endif %}
+    </nav>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

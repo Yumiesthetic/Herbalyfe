@@ -1,0 +1,134 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ user.username }} - Profile{% endblock %}
+
+{% block content %}
+<section class="register-section">
+    <h1>Profile Settings</h1>
+
+    <!-- Avatar Preview -->
+    <div class="profile-section" style="text-align:center; margin-bottom:2rem;">
+        {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}'s avatar" style="width:300px; height:300px; border-radius:100%; object-fit:cover; border:2px solid #1b5e30; margin-bottom:1rem;">
+        {% else %}
+        <img src="{{ MEDIA_URL }}default-avatar.png" alt="Default Avatar" style="width:300px; height:300px; border-radius:100%; object-fit:cover; border:2px solid #1b5e30; margin-bottom:1rem;">
+        {% endif %}
+    </div>
+
+    <!-- Update Profile Form -->
+    <form method="POST" enctype="multipart/form-data" class="register-form">
+        {% csrf_token %}
+        <h3>Update Profile</h3>
+
+        <!-- USERNAME -->
+        <div class="form-group">
+            <label for="{{ profile_form.username.id_for_label }}">Username</label>
+            {{ profile_form.username }}
+            {% if profile_form.username.errors %}
+              <ul class="error-list">
+                {% for error in profile_form.username.errors %}
+                  <li>⚠️ {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+        </div>
+
+        <!-- EMAIL -->
+        <div class="form-group">
+            <label for="{{ profile_form.email.id_for_label }}">Email</label>
+            {{ profile_form.email }}
+            {% if profile_form.email.errors %}
+              <ul class="error-list">
+                {% for error in profile_form.email.errors %}
+                  <li>⚠️ {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+        </div>
+
+        <!-- AVATAR -->
+        <div class="form-group">
+            <label for="{{ profile_form.avatar.id_for_label }}">Avatar</label>
+            {{ profile_form.avatar }}
+            {% if profile_form.avatar.help_text %}
+              <small class="help-text">{{ profile_form.avatar.help_text }}</small>
+            {% endif %}
+            {% if profile_form.avatar.errors %}
+              <ul class="error-list">
+                {% for error in profile_form.avatar.errors %}
+                  <li>⚠️ {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+        </div>
+
+        <button type="submit" name="update_profile" class="register-btn">Save Changes</button>
+
+        <!-- Profile success messages only -->
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <p class="profile-success">{{ message }}</p>
+            {% endif %}
+        {% endfor %}
+    </form>
+
+    <hr>
+
+    <!-- Change Password Form -->
+    <form method="POST" class="register-form">
+        {% csrf_token %}
+        <h3>Change Password</h3>
+
+        <!-- Old Password -->
+        <div class="form-group">
+            <label for="{{ password_form.old_password.id_for_label }}">Old Password</label>
+            {{ password_form.old_password }}
+            {% if password_form.old_password.errors %}
+              <ul class="error-list">
+                {% for error in password_form.old_password.errors %}
+                  <li>⚠️ {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+        </div>
+
+        <!-- New Password -->
+        <div class="form-group">
+            <label for="{{ password_form.new_password1.id_for_label }}">New Password</label>
+            {{ password_form.new_password1 }}
+            {% if password_form.new_password1.errors %}
+              <ul class="error-list">
+                {% for error in password_form.new_password1.errors %}
+                  <li>⚠️ {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+            {% if password_form.new_password1.help_text %}
+              <small class="help-text left-aligned">{{ password_form.new_password1.help_text|safe }}</small>
+            {% endif %}
+        </div>
+
+        <!-- Confirm New Password -->
+        <div class="form-group">
+            <label for="{{ password_form.new_password2.id_for_label }}">Confirm New Password</label>
+            {{ password_form.new_password2 }}
+            {% if password_form.new_password2.errors %}
+              <ul class="error-list">
+                {% for error in password_form.new_password2.errors %}
+                  <li>⚠️ {{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+        </div>
+
+        <button type="submit" name="change_password" class="register-btn">Update Password</button>
+
+        <!-- Success message for changing password -->
+        {% for message in messages %}
+            {% if 'password_success' in message.tags %}
+                <p class="password-success">{{ message }}</p>
+            {% endif %}
+        {% endfor %}
+    </form>
+</section>
+{% endblock %}

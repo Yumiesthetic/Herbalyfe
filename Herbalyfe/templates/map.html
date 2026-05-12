@@ -1,0 +1,364 @@
+{% extends 'layout.html' %}
+
+{% block title %}Herbalyfe - Home{% endblock %}
+
+{% block content %}
+<h2>Find and pin maps</h2>
+<h3>Find pinned local herbs near you done by other users.</h3>
+
+<div style="margin:12px 0">
+    <strong>Filter pins</strong><br>
+
+    <label>
+        Herb:
+        <select id="filter-herb">
+            <option value="">ALL HERBS</option>
+            {% if user.is_authenticated %}
+            <option value="favorites">MY FAVORITES</option>
+            {% endif %}
+        </select>
+    </label>
+
+    <label style="margin-left:12px">
+        User:
+        <select id="filter-user">
+            <option value="">All users</option>
+        </select>
+    </label>
+</div>
+
+<div id="map" style="width:1080px;height:720px;"></div>
+
+{% if user.is_authenticated %}
+<div style="margin:8px 0;">
+    <label>
+        <input type="checkbox" id="enable-pinning">
+        Enable pinning
+    </label>
+</div>
+
+<div style="margin-bottom:8px;">
+    <label for="herb-select">Select herb to pin:</label>
+    <select id="herb-select">
+        <option value="">Loading herbs...</option>
+    </select>
+</div>
+{% endif %}
+
+<script>
+    // Map setup
+    const map = L.map('map').setView([13.0, 122.0], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    /*
+    Django blocks POST requests unless they include a valid CSRF token.
+    Since JS fetch() requests are AJAX requests, Django cannot automatically inject the token like it does with regular HTML forms.
+    Without it, Django will reject the request as a security measure to prevent CSRF attacks. "403 Forbidden (CSRF verification failed)"
+    1. Browser cookie
+    2. getCookie('csrftoken')
+    3. sent in request header
+    4. Django verifies request is legitimate
+    */
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Pin loading
+    let pinMarkers = [];
+
+    function loadPins(url = '/herbs/pins/') {
+        pinMarkers.forEach(m => map.removeLayer(m));
+        pinMarkers = [];
+
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                (data.pins || []).forEach(p => {
+
+                    const marker = L.marker([p.latitude, p.longitude]).addTo(map);
+                    marker.pinId = p.id;
+
+                    // Store favorited state on marker
+                    marker.isFavorited = p.favorited;
+
+                    // Function to generate popup content dynamically
+                    function getPopupContent() {
+                        let content = `
+                            <a href="/herbs/${p.herb.slug}">${p.herb.name}</a><br>
+                            <b>Latitude:</b> ${p.latitude.toFixed(5)}<br>
+                            <b>Longitude:</b> ${p.longitude.toFixed(5)}<br>
+                            <b>Pinned by:</b> ${p.user}<br>
+                            <b>${new Date(p.created_at).toLocaleString()}</b><br>
+                        `;
+
+                        {% if user.is_authenticated %}
+                        if (p.user === "{{ user.username }}" || {{ user.is_superuser|yesno:"true,false" }}) {
+                            content += `<button class="delete-pin-btn" data-pin-id="${p.id}">Delete Pin</button>`;
+                        }
+
+                        const favText = marker.isFavorited ? '⭐ Unfavorite ' : '⭐ Favorite';
+                        content += `<button class="favorite-pin-btn" data-pin-id="${p.id}">${favText}</button>`;
+
+                        content += `<button class="report-pin-btn" data-pin-id="${p.id}">
+                                        ❗ Report
+                                    </button>`;
+                        {% endif %}
+
+                        return content;
+                    }
+
+                    marker.bindPopup(getPopupContent);
+
+                    {% if user.is_authenticated %}
+                    marker.on('popupopen', function () {
+                        // Refresh popup content each time
+                        marker.setPopupContent(getPopupContent());
+
+                        // Favorite button
+                        const favBtn = document.querySelector('.favorite-pin-btn[data-pin-id="' + p.id + '"]');
+                        if (favBtn) {
+                            favBtn.onclick = function () { // replace old listener
+                                fetch(`/herbs/toggle_favorite/${p.id}/`, {
+                                    method: 'POST',
+                                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' }
+                                })
+                                .then(r => r.json())
+                                .then(resp => {
+                                    if (resp.status === 'favorited') {
+                                        marker.isFavorited = true;
+                                        favBtn.textContent = 'Unfavorite ⭐';
+                                    } else if (resp.status === 'unfavorited') {
+                                        marker.isFavorited = false;
+                                        favBtn.textContent = 'Favorite ⭐';
+                                        if (filterHerb.value === 'favorites') {
+                                            map.removeLayer(marker);
+                                            pinMarkers = pinMarkers.filter(m => m !== marker);
+                                        }
+                                    }
+                                });
+                            };
+                        }
+
+                        // Delete pin
+                        const deleteBtn = document.querySelector('.delete-pin-btn[data-pin-id="' + p.id + '"]');
+                        if (deleteBtn) {
+                            deleteBtn.addEventListener('click', function () {
+                                if (!confirm('Are you sure you want to delete this pin?')) return;
+
+                                fetch(`/herbs/pin/${p.id}/delete/`, {
+                                    method: 'POST',
+                                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' }
+                                })
+                                .then(r => r.json())
+                                .then(resp => {
+                                    if (resp.status === 'ok') {
+                                        map.removeLayer(marker);
+                                        applyFilters();
+                                    }
+                                });
+                            });
+                        }
+
+                        // Report pin
+                        const reportBtn = document.querySelector('.report-pin-btn[data-pin-id="' + p.id + '"]');
+
+                        if (reportBtn) {
+
+                            reportBtn.onclick = function () {
+
+                                const reason = prompt('Why are you reporting this pin?');
+
+                                if (reason === null) return;
+
+                                if (reason.trim() === '') {
+                                    alert('Please enter a reason.');
+                                    return;
+                                }
+
+                                fetch(`/reports/submit/${p.id}/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': getCookie('csrftoken') || ''
+                                    },
+                                    body: JSON.stringify({
+                                        reason: reason
+                                    })
+                                })
+                                .then(r => r.json())
+                                .then(resp => {
+
+                                    if (resp.status === 'ok') {
+                                        alert('Report submitted successfully!');
+                                    }
+
+                                    else {
+                                        alert('You already reported this pin.');
+                                    }
+
+                                })
+                                .catch(() => {
+                                    alert('Error submitting report.');
+                                });
+                            };
+                        }
+                    });
+                    {% endif %}
+
+                    pinMarkers.push(marker);
+                });
+                /* Auto-focus target from URL */
+                const params = new URLSearchParams(window.location.search);
+                const targetPin = params.get('pin');
+
+                if (targetPin) {
+
+                    const targetMarker = pinMarkers.find(
+                        m => String(m.pinId) === String(targetPin)
+                    );
+
+                    if (targetMarker) {
+
+                        map.setView(targetMarker.getLatLng(), 15);
+
+                        targetMarker.openPopup();
+
+                        targetMarker.setZIndexOffset(1000);
+                    }
+                }
+            })
+            .catch(console.error);
+    }
+
+    loadPins();
+
+    // Filter Dropdowns
+    const filterHerb = document.getElementById('filter-herb');
+    const filterUser = document.getElementById('filter-user');
+
+    // Load herb filter options
+    fetch('/herbs/list_json/')
+        .then(r => r.json())
+        .then(data => {
+            (data.herbs || []).forEach(h => {
+                const opt = document.createElement('option');
+                opt.value = h.id;
+                opt.textContent = h.name;
+                filterHerb.appendChild(opt);
+            });
+        });
+
+    // Load user filter options
+    fetch('/herbs/pin_users/')
+        .then(r => r.json())
+        .then(data => {
+            (data.users || []).forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.username;
+                opt.textContent = u.username;
+                filterUser.appendChild(opt);
+            });
+        });
+
+    // Auth-only features
+    const herbSelect = document.getElementById('herb-select');
+    const pinToggle = document.getElementById('enable-pinning');
+
+    let pinningEnabled = false;
+
+    if (pinToggle) {
+        pinToggle.addEventListener('change', () => {
+            pinningEnabled = pinToggle.checked;
+        });
+    }
+
+    if (herbSelect) {
+        fetch('/herbs/list_json/')
+            .then(r => r.json())
+            .then(data => {
+                herbSelect.innerHTML = '<option value="">-- choose an herb --</option>';
+                (data.herbs || []).forEach(h => {
+                    const opt = document.createElement('option');
+                    opt.value = h.id;
+                    opt.textContent = h.name;
+                    herbSelect.appendChild(opt);
+                });
+            });
+
+        map.on('click', function (e) {
+            if (!pinningEnabled) return;
+
+            const herbId = herbSelect.value;
+            if (!herbId) {
+                alert('Please select a herb first.');
+                return;
+            }
+
+            const { lat, lng } = e.latlng;
+            const marker = L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup('Saving...')
+                .openPopup();
+
+            fetch('/herbs/pin/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || ''
+                },
+                body: JSON.stringify({
+                    herb_id: herbId,
+                    latitude: lat,
+                    longitude: lng
+                })
+            })
+            .then(r => r.json())
+            .then(resp => {
+                map.removeLayer(marker);
+                if (resp.status === 'ok') {
+                    loadPins();
+                }
+            })
+            .catch(() => {
+                marker.bindPopup('Error saving').openPopup();
+            });
+        });
+    }
+
+    // Filter apply
+    function applyFilters() {
+        const herbId = filterHerb.value;
+        const username = filterUser.value;
+
+        if (herbId === 'favorites') {
+            filterUser.value = '';
+            filterUser.disabled = true;
+        } else {
+            filterUser.disabled = false;
+        }
+
+        pinMarkers.forEach(m => map.removeLayer(m));
+        pinMarkers = [];
+
+        let url = '';
+        if (herbId === 'favorites') {
+            url = '/herbs/favorite_pins_json/';
+        } else {
+            url = '/herbs/pins/?';
+            if (herbId) url += `herb_id=${herbId}&`;
+            if (username) url += `username=${username}`;
+        }
+
+        loadPins(url);
+    }
+
+    // Auto-update when filter changes
+    filterHerb.addEventListener('change', applyFilters);
+    filterUser.addEventListener('change', applyFilters);
+</script>
+{% endblock %}

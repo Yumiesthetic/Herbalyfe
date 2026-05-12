@@ -1,0 +1,38 @@
+<!-- ..\static\images\herbalyfe_logo\Herbalyfe-logo.png -->
+
+{% extends 'layout.html' %}
+
+{% block title %}
+    {% if user.is_authenticated %}
+        Welcome back {{user.username}}! - Herbalyfe Website
+    {% else %}
+        Herbalyfe Home
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="home-section">
+    <div class="intro-container">
+        <div class="intro-left">
+            <img id="home-logo" src="../static/images/herbalyfe_logo/Herbalyfe-logo.png" alt="Herbalyfe Logo">
+            <h1>Welcome to Herbalyfe</h1>
+            <p>Preserving knowledge, empowering communities.</p>
+        </div>
+
+        <div class="intro-right">
+            <h3>What is Herbalyfe all about?</h3>
+            <p>This is a website dedicated for storing information about the different medicinal herbs as well as map pins made by users for herb locations with geolocation data.</p>
+            <p>It aims to provide users with comprehensive details on various herbs, their uses, benefits, and potential side effects.</p>
+            <p>Whether you're a herbal enthusiast, a healthcare professional, or simply curious about natural remedies, 
+                Herbalyfe is here to assist you in your journey towards holistic wellness.</p>
+            <p>Explore our extensive database of medicinal herbs and discover the power of nature in promoting health and well-being.</p>
+            <br>
+            <p><strong>Your go-to resource for local medicinal herbs and their uses.</strong></p>
+        </div>
+    </div>
+</section>
+
+<div id="image-overlay">
+  <img id="overlay-image" src="" alt="Zoomed image">
+</div>
+{% endblock %}

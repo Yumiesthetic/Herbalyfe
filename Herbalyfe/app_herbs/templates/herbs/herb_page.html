@@ -1,0 +1,373 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    {{ herb.name }}
+{% endblock %}
+
+{% block content %}
+<section class="herb-details-section">
+    <div class="herb-card-large">
+        <div class="herb-image-container">
+            <img id="herb-image" src="{{ herb.image.url }}" alt="{{ herb.name }}">
+        </div>
+
+        <div class="herb-info">
+            <h2 class="herb-name">{{ herb.name }}</h2>
+            {% if herb.scientific_name %}
+                <h3 class="herb-scientific">{{ herb.scientific_name }}</h3>
+            {% endif %}
+
+            <p class="herb-description">{{ herb.description|safe }}</p>
+
+            <div class="herb-section">
+                <h4>🌱 Medicinal Uses</h4>
+                <p>{{ herb.medicinal_uses|safe }}</p>
+            </div>
+
+            {% if herb.side_effects %}
+            <div class="herb-section">
+                <h4>⚠️ Side Effects</h4>
+                <p>{{ herb.side_effects|safe }}</p>
+            </div>
+            {% endif %}
+
+            <div class="herb-section">
+                <h4>🩺 Related Illnesses</h4>
+
+                <ul style="margin:0; padding-left:10px; list-style-position:inside;">
+                    {% for illness in herb.related_illnesses.all %}
+                        <li>
+                            <b>
+                                <a href="{% url 'illnesses:illness_page' illness.slug %}">
+                                    {{ illness.name }}
+                                </a>
+                            </b>
+                        </li>
+                    {% empty %}
+                        <li>No related illnesses available.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <div style="margin:12px 0;">
+        <strong id="pin-count-label">
+            Loading pin data...
+        </strong>
+    </div>
+
+    <div style="margin:8px 0;">
+        <label>
+            <input type="checkbox" id="toggle-location">
+            Show nearby only
+        </label>
+    </div>
+
+    <div id="herb-map" style="width:100%; height:700px;"></div>
+
+    <a href="{% url 'herbs:herbs_list' %}" class="back-link">← Back to Herbs List</a>
+</section>
+
+<div id="image-overlay">
+  <img id="overlay-image" src="" alt="Zoomed Herb">
+</div>
+
+<script>
+    const herbId = {{ herb.id }};
+    const map = L.map('herb-map').setView([13.0, 122.0], 6);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let markers = [];
+    let userLocation = null;
+    let locationEnabled = false;
+    let radiusCircle = null; // store circle so we can remove/update it
+    const radiusKm = 3; // default radius (e.g. 0.5 = 500m, 1 = 1km, 3 = 3km, 5 = 5km, etc.)
+
+    const label = document.getElementById('pin-count-label');
+    const toggle = document.getElementById('toggle-location');
+
+    /*
+    Django blocks POST requests unless they include a valid CSRF token.
+    Since JS fetch() requests are AJAX requests, Django cannot automatically inject the token like it does with regular HTML forms.
+    Without it, Django will reject the request as a security measure to prevent CSRF attacks. "403 Forbidden (CSRF verification failed)"
+    1. Browser cookie
+    2. getCookie('csrftoken')
+    3. sent in request header
+    4. Django verifies request is legitimate
+    */
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+
+        if (parts.length === 2) {
+            return parts.pop().split(';').shift();
+        }
+    }
+
+    // Load pins
+    function loadHerbPins() {
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+
+        fetch(`/herbs/pins/?herb_id=${herbId}`)
+            .then(r => r.json())
+            .then(data => {
+                let count = 0;
+
+                (data.pins || []).forEach(p => {
+                    const latlng = [p.latitude, p.longitude];
+
+                    if (locationEnabled && userLocation) {
+                        const dist = map.distance(userLocation, latlng) / 1000;
+                        if (dist > radiusKm) return;
+                    }
+
+                    const marker = L.marker(latlng).addTo(map);
+
+                    marker.isFavorited = p.favorited;
+
+                    function getPopupContent() {
+
+                        let content = `
+                            <b>${p.herb.name}</b><br>
+                            ${p.latitude.toFixed(5)}, ${p.longitude.toFixed(5)}<br>
+                            by ${p.user}<br>
+                        `;
+
+                        {% if user.is_authenticated %}
+
+                        if (
+                            p.user === "{{ user.username }}"
+                            || {{ user.is_superuser|yesno:"true,false" }}
+                        ) {
+
+                            content += `
+                                <button class="delete-pin-btn" data-pin-id="${p.id}">
+                                    Delete Pin
+                                </button>
+                            `;
+                        }
+
+                        const favText = marker.isFavorited
+                            ? '⭐ Unfavorite'
+                            : '⭐ Favorite';
+
+                        content += `
+                            <button class="favorite-pin-btn" data-pin-id="${p.id}">
+                                ${favText}
+                            </button>
+                        `;
+
+                        content += `
+                            <button class="report-pin-btn" data-pin-id="${p.id}">
+                                ❗ Report
+                            </button>
+                        `;
+
+                        {% endif %}
+
+                        return content;
+                    }
+
+                    marker.bindPopup(getPopupContent());
+
+                    {% if user.is_authenticated %}
+
+                    marker.on('popupopen', function () {
+
+                        marker.setPopupContent(getPopupContent());
+
+                        // Favorite/unfavorite
+                        const favBtn = document.querySelector(
+                            '.favorite-pin-btn[data-pin-id="' + p.id + '"]'
+                        );
+
+                        if (favBtn) {
+
+                            favBtn.onclick = function () {
+
+                                fetch(`/herbs/toggle_favorite/${p.id}/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRFToken': getCookie('csrftoken') || ''
+                                    }
+                                })
+                                .then(r => r.json())
+                                .then(resp => {
+
+                                    if (resp.status === 'favorited') {
+
+                                        marker.isFavorited = true;
+                                        favBtn.textContent = '⭐ Unfavorite';
+                                    }
+
+                                    else if (resp.status === 'unfavorited') {
+
+                                        marker.isFavorited = false;
+                                        favBtn.textContent = '⭐ Favorite';
+                                    }
+                                });
+                            };
+                        }
+
+                        // Delete
+                        const deleteBtn = document.querySelector(
+                            '.delete-pin-btn[data-pin-id="' + p.id + '"]'
+                        );
+
+                        if (deleteBtn) {
+
+                            deleteBtn.onclick = function () {
+
+                                if (!confirm('Delete this pin?')) return;
+
+                                fetch(`/herbs/pin/${p.id}/delete/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRFToken': getCookie('csrftoken') || ''
+                                    }
+                                })
+                                .then(r => r.json())
+                                .then(resp => {
+
+                                    if (resp.status === 'ok') {
+
+                                        map.removeLayer(marker);
+                                        loadHerbPins();
+                                    }
+                                });
+                            };
+                        }
+
+                        // Report
+                        const reportBtn = document.querySelector(
+                            '.report-pin-btn[data-pin-id="' + p.id + '"]'
+                        );
+
+                        if (reportBtn) {
+
+                            reportBtn.onclick = function () {
+
+                                const reason = prompt(
+                                    'Why are you reporting this pin?'
+                                );
+
+                                if (reason === null) return;
+
+                                if (reason.trim() === '') {
+
+                                    alert('Please enter a reason.');
+                                    return;
+                                }
+
+                                fetch(`/reports/submit/${p.id}/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': getCookie('csrftoken') || ''
+                                    },
+                                    body: JSON.stringify({
+                                        reason: reason
+                                    })
+                                })
+                                .then(async (r) => {
+                                    const resp = await r.json();
+
+                                    if (!r.ok || resp.status === 'error') {
+                                        alert(resp.message || 'Failed to submit report.');
+                                        return;
+                                    }
+
+                                    alert('Report submitted successfully!');
+                                })
+                                .catch(() => {
+                                    alert('Error submitting report.');
+                                });
+                            };
+                        }
+                    });
+
+                    {% endif %}
+
+                    markers.push(marker);
+                    count++;
+                });
+
+                updateLabel(count);
+            });
+    }
+
+    // Label update
+    function updateLabel(count) {
+        const herbName = "{{ herb.name }}";
+
+        if (locationEnabled) {
+            if (count === 0) {
+                label.textContent = `NO NEARBY AVAILABLE ${herbName.toUpperCase()} AT YOUR LOCATION.`;
+            } else if (count === 1) {
+                label.textContent = `THERE IS CURRENTLY 1 PINNED ${herbName.toUpperCase()} NEAR YOUR LOCATION.`;
+            } else {
+                label.textContent = `THERE ARE CURRENTLY ${count} PINNED ${herbName.toUpperCase()} NEAR YOUR LOCATION.`;
+            }
+        } else {
+            if (count === 0) {
+                label.textContent = `THERE ARE CURRENTLY NO PINNED ${herbName.toUpperCase()} AVAILABLE.`;
+            } else if (count === 1) {
+                label.textContent = `THERE IS CURRENTLY 1 PINNED ${herbName.toUpperCase()} IN TOTAL.`;
+            } else {
+                label.textContent = `THERE ARE CURRENTLY ${count} PINNED ${herbName.toUpperCase()} IN TOTAL.`;
+            }
+        }
+    }
+
+    // Location toggle
+    toggle.addEventListener('change', () => {
+        locationEnabled = toggle.checked;
+
+        // Remove old circle if exists
+        if (radiusCircle) {
+            map.removeLayer(radiusCircle);
+            radiusCircle = null;
+        }
+
+        if (locationEnabled) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userLocation = [pos.coords.latitude, pos.coords.longitude];
+
+                    map.setView(userLocation, 13);
+
+                    // Create and store circle
+                    radiusCircle = L.circle(userLocation, {
+                        radius: radiusKm * 1000
+                    }).addTo(map);
+
+                    loadHerbPins();
+                },
+                () => {
+                    alert("Location access denied.");
+                    toggle.checked = false;
+                    locationEnabled = false;
+                }
+            );
+        } else {
+            userLocation = null;
+
+            // Reset map + remove circle already handled above
+            map.setView([13.0, 122.0], 6);
+
+            loadHerbPins();
+        }
+    });
+
+    // Initial load
+    loadHerbPins();
+</script>
+
+{% endblock %}
