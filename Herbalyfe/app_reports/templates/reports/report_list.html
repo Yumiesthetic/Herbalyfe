@@ -100,7 +100,19 @@ Reported Pins
 
                 <td>{{ report.created_at }}</td>
 
-                <td>{{ report.status }}</td>
+                <td>
+                    <span class="
+                        {% if report.status == 'PENDING' %}
+                            status-pending
+                        {% elif report.status == 'APPROVED' %}
+                            status-approved
+                        {% elif report.status == 'DENIED' %}
+                            status-denied
+                        {% endif %}
+                    ">
+                        {{ report.status }}
+                    </span>
+                </td>
 
                 <td>
                     {% if report.reported_pin %}

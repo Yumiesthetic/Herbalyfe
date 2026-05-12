@@ -866,3 +866,18 @@ a:hover {
     background-color: #a51818;
     cursor: pointer;
 }
+
+.status-pending {
+    color: green;
+    font-weight: bold;
+}
+
+.status-approved {
+    color: #4da6ff;
+    font-weight: bold;
+}
+
+.status-denied {
+    color: red;
+    font-weight: bold;
+}
