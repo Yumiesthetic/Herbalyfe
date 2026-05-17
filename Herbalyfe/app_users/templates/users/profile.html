@@ -130,5 +130,17 @@
             {% endif %}
         {% endfor %}
     </form>
+
+    {% if not user.is_superuser %}
+    <hr style="margin: 2rem 0;">
+
+    <div style="text-align:center;">
+        <a href="{% url 'users:delete_account' %}"
+          class="deny-btn"
+          style="display:inline-block; text-decoration:none; padding:12px 20px;">
+            Delete Account
+        </a>
+    </div>
+    {% endif %}
 </section>
 {% endblock %}

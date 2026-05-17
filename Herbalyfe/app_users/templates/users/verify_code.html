@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block title %}
-Verify Recovery Code
+Verify Code
 {% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@ Verify Recovery Code
     <h1>Email Verification</h1>
 
     <p class="help-text" style="margin-bottom:20px;">
-        A 6-digit recovery code was sent to your email.
+        {{ verification_message }}
     </p>
 
     <!-- LIVE EXPIRATION TIMER -->
@@ -23,8 +23,7 @@ Verify Recovery Code
             font-size:1.1rem;
         "
     >
-        Code expires in:
-        <span id="expiry-timer">60</span>s
+        Code expires after 1 minute.
     </div>
 
     <!-- VERIFY CODE FORM -->
@@ -52,117 +51,16 @@ Verify Recovery Code
         </button>
     </form>
 
-    <!-- RESEND BUTTON -->
-    <form method="post" style="margin-top:15px;">
-        {% csrf_token %}
-
-        <button
-            type="submit"
-            name="resend_code"
-            id="resend-btn"
-            class="register-btn"
-            disabled
-        >
-            Resend Code (60s)
-        </button>
-    </form>
-
-    <!-- MESSAGES -->
     {% if messages %}
         <ul class="messages" style="margin-top:20px;">
             {% for message in messages %}
-                <li class="{{ message.tags }}">
-                    {{ message }}
-                </li>
+                {% if message.tags == 'success' %}
+                    <li class="{{ message.tags }}">
+                        {{ message }}
+                    </li>
+                {% endif %}
             {% endfor %}
         </ul>
     {% endif %}
-
-    <p class="login-link" style="margin-top:20px;">
-        Remembered your password?
-        <a href="{% url 'users:login' %}">
-            🔑 Go back to login
-        </a>
-    </p>
 </section>
-
-<script>
-    // Expiration timer for the verification code
-    const expiryTimer = document.getElementById('expiry-timer');
-    const expiryLabel = document.getElementById('expiry-label');
-
-    // Always reset timer when page loads fresh
-    sessionStorage.removeItem('expiryEndTime');
-
-    // Create new expiration time
-    const expiryEnd = Date.now() + (60 * 1000);
-    sessionStorage.setItem('expiryEndTime', expiryEnd);
-
-    function updateExpiryTimer() {
-        const expiryEnd = parseInt(sessionStorage.getItem('expiryEndTime'));
-
-        const remaining = Math.ceil((expiryEnd - Date.now()) / 1000);
-
-        if (remaining <= 0) {
-            expiryLabel.textContent = "Code expired";
-            expiryLabel.style.color = "#db1515";
-            clearInterval(expiryInterval);
-            return;
-        }
-
-        expiryLabel.innerHTML = `
-            Code expires in:
-            <span id="expiry-timer">${remaining}</span>s
-        `;
-    }
-
-    updateExpiryTimer();
-
-    const expiryInterval = setInterval(updateExpiryTimer, 1000);
-
-
-    // Resend button cooldown timer
-    const resendBtn = document.getElementById('resend-btn');
-
-    // Always reset resend cooldown when page loads fresh
-    sessionStorage.removeItem('resendEndTime');
-
-    // Create new resend cooldown
-    const resendEnd = Date.now() + (60 * 1000);
-    sessionStorage.setItem('resendEndTime', resendEnd);
-
-    function updateResendTimer() {
-        const resendEnd = parseInt(sessionStorage.getItem('resendEndTime'));
-
-        const remaining = Math.ceil((resendEnd - Date.now()) / 1000);
-
-        if (remaining <= 0) {
-            resendBtn.disabled = false;
-            resendBtn.textContent = "Resend Code";
-            clearInterval(resendInterval);
-            return;
-        }
-
-        resendBtn.disabled = true;
-        resendBtn.textContent = `Resend Code (${remaining}s)`;
-    }
-
-    updateResendTimer();
-
-    const resendInterval = setInterval(updateResendTimer, 1000);
-
-
-    // Reset timers when resend button is clicked
-    resendBtn.addEventListener('click', () => {
-        sessionStorage.setItem(
-            'expiryEndTime',
-            Date.now() + (60 * 1000)
-        );
-
-        sessionStorage.setItem(
-            'resendEndTime',
-            Date.now() + (60 * 1000)
-        );
-    });
-</script>
 {% endblock %}

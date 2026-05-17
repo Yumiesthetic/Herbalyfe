@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+Delete Account
+{% endblock %}
+
+{% block content %}
+<section class="register-section">
+
+    <h1>Delete Account</h1>
+
+    <p class="help-text" style="margin-bottom:20px;">
+        Warning: deleting your account is irreversible.
+        All map pins, favorites, reports, and profile data
+        will be permanently deleted.
+    </p>
+
+    <form method="post" class="register-form">
+
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>
+                Confirm Password
+            </label>
+
+            {{ form.password }}
+
+            {% if form.password.errors %}
+                <ul class="error-list">
+                    {% for error in form.password.errors %}
+                        <li>⚠️ {{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="deny-btn">
+            Continue
+        </button>
+
+    </form>
+
+</section>
+{% endblock %}

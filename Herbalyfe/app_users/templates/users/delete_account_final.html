@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+Final Warning
+{% endblock %}
+
+{% block content %}
+<section class="register-section">
+
+    <h1>Final Warning</h1>
+
+    <p class="help-text" style="margin-bottom:20px;">
+        This action is permanent and cannot be undone.
+    </p>
+
+    <p class="help-text" style="margin-bottom:30px;">
+        Deleting your account will permanently remove:
+    </p>
+
+    <ul
+        style="
+            text-align:left;
+            color:#1b5e30;
+            margin-bottom:30px;
+            padding-left:30px;
+        "
+    >
+        <li>Your profile</li>
+        <li>Your herb pins</li>
+        <li>Your favorites</li>
+        <li>Your submitted reports</li>
+    </ul>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <button type="submit" class="deny-btn">
+            Permanently Delete My Account
+        </button>
+
+    </form>
+
+</section>
+{% endblock %}

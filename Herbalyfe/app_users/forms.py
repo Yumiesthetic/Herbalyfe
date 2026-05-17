@@ -66,6 +66,16 @@ class CustomUserCreationForm(UserCreationForm):
                     None
                 )
         return image
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+
+        if User.objects.filter(email=email).exists():
+            raise ValidationError(
+                "This email is already registered."
+            )
+
+        return email
 
 # Update username, email, and avatar
 class ProfileUpdateForm(forms.ModelForm):
@@ -78,7 +88,7 @@ class ProfileUpdateForm(forms.ModelForm):
         min_length=3,
         validators=[UnicodeUsernameValidator()]
     )
-    email = forms.EmailField(validators=[validate_email])
+    email = forms.EmailField()
 
     class Meta:
         model = User
@@ -133,3 +143,34 @@ class VerificationCodeForm(forms.Form):
 # Reset password form
 class ResetPasswordForm(SetPasswordForm):
     pass
+
+
+# Delete account confirmation form
+class DeleteAccountForm(forms.Form):
+    password = forms.CharField(
+        label="Confirm Password",
+        widget=forms.PasswordInput(attrs={
+            'autocomplete': 'current-password',
+            'placeholder': 'Enter your password'
+        })
+    )
+
+# Email change verification form
+class EmailChangeForm(forms.Form):
+    new_email = forms.EmailField(
+        label="New Email Address",
+        widget=forms.EmailInput(attrs={
+            'autocomplete': 'off',
+            'placeholder': 'Enter new email'
+        })
+    )
+
+    def clean_new_email(self):
+        email = self.cleaned_data.get('new_email')
+
+        if User.objects.filter(email=email).exists():
+            raise ValidationError(
+                "This email is already registered."
+            )
+
+        return email
