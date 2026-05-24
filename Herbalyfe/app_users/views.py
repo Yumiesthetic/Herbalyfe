@@ -7,7 +7,6 @@ from .forms import (
     VerificationCodeForm,
     ResetPasswordForm,
     DeleteAccountForm,
-    EmailChangeForm
 )
 
 from django.contrib.auth.forms import AuthenticationForm
@@ -39,7 +38,7 @@ def send_verification_email(email, code, subject_text):
     text_content = f'''
     Your Herbalyfe verification code is: {code}
 
-    This code expires in 1 minute.
+    This code expires in 5 minutes.
 
     This email is automated. Please do not reply.
 
@@ -51,7 +50,7 @@ def send_verification_email(email, code, subject_text):
 
     <h2><b>{code}</b></h2>
 
-    <p>This code expires in 1 minute.</p>
+    <p>This code expires in 5 minutes.</p>
 
     <p>This email is automated. Please do not reply.</p>
 
@@ -110,7 +109,7 @@ def register_view(request):
             request.session['verification_code'] = code
 
             request.session['verification_expiry'] = (
-                timezone.now() + timedelta(minutes=1)
+                timezone.now() + timedelta(minutes=5)
             ).isoformat()
 
             request.session['register_data'] = {
@@ -231,7 +230,7 @@ def password_recovery(request):
                 request.session['verification_code'] = code
 
                 request.session['verification_expiry'] = (
-                    timezone.now() + timedelta(minutes=1)
+                    timezone.now() + timedelta(minutes=5)
                 ).isoformat()
 
                 request.session.modified = True
@@ -371,10 +370,20 @@ def verify_code(request):
                             save=True
                         )
 
-                    login(request, user)
+                    # Clear ONLY verification-related session data
+                    for key in [
+                        'verification_type',
+                        'verification_email',
+                        'verification_code',
+                        'verification_expiry',
+                        'register_data',
+                        'temp_avatar_bytes',
+                        'temp_avatar_name',
+                    ]:
+                        request.session.pop(key, None)
 
-                    # Clear sessions
-                    request.session.flush()
+                    # Auto login AFTER cleanup
+                    login(request, user)
 
                     return redirect('/')
 
@@ -612,7 +621,7 @@ def profile_view(request):
                     request.session['verification_code'] = code
 
                     request.session['verification_expiry'] = (
-                        timezone.now() + timedelta(minutes=1)
+                        timezone.now() + timedelta(minutes=5)
                     ).isoformat()
 
                     request.session['pending_new_email'] = (
